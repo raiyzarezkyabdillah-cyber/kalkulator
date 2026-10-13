@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Berbayar 15K</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #0f1016;
+            --calc-bg: #181925;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #6366f1;
+            --accent: #ec4899;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --btn-bg: rgba(255, 255, 255, 0.04);
+            --btn-hover: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Background Glow */
+        .glow {
+            position: absolute;
+            width: 350px;
+            height: 350px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            filter: blur(150px);
+            z-index: -1;
+            opacity: 0.15;
+        }
+
+        /* Container Kalkulator */
+        .calculator {
+            width: 100%;
+            max-width: 340px;
+            background: var(--calc-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Layar Kalkulator */
+        .display {
+            background: rgba(15, 16, 22, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px 20px;
+            text-align: right;
+            margin-bottom: 24px;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+
+        .display .previous {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            min-height: 20px;
+        }
+
+        .display .current {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-top: 4px;
+        }
+
+        /* Tombol-tombol Grid */
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        button.calc-btn {
+            background: var(--btn-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            color: var(--text-main);
+            font-size: 1.1rem;
+            font-weight: 600;
+            height: 60px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        button.calc-btn:hover {
+            background: var(--btn-hover);
+            transform: scale(1.03);
+        }
+
+        button.calc-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* Warna Khusus Tombol */
+        button.operator {
+            color: #818cf8;
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.2);
+        }
+
+        button.operator:hover {
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        button.equals {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        button.equals:hover {
+            opacity: 0.9;
+        }
+
+        button.clear {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        /* --- POPUP MODAL PEMBAYARAN 15K --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 16, 22, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            width: 90%;
+            max-width: 320px;
+            background: #1c1e29;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            transform: scale(0.9);
+            transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(236, 72, 153, 0.15);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 16px;
+            color: var(--accent);
+            font-size: 1.5rem;
+        }
+
+        .modal-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .modal-card p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+        }
+
+        .btn-bayar {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-batal {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glow"></div>
+
+    <!-- Modal Pop-up Bayar 15K -->
+    <div class="modal-overlay" id="payModal">
+        <div class="modal-card">
+            <div class="modal-icon">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h3>Buka Jawaban Ini?</h3>
+            <p>Selesaikan pembayaran sebesar <b>Rp 15.000</b> untuk melihat hasil kalkulasi.</p>
+            <div class="modal-buttons">
+                <button class="modal-btn btn-batal" onclick="closeModal()">Batal</button>
+                <button class="modal-btn btn-bayar" onclick="confirmPayment()">Bayar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kalkulator -->
+    <div class="calculator">
+        <div class="display">
+            <div class="previous" id="previous-display"></div>
+            <div class="current" id="current-display">0</div>
+        </div>
+
+        <div class="buttons-grid">
+            <button class="calc-btn clear" onclick="clearDisplay()">AC</button>
+            <button class="calc-btn operator" onclick="appendOperator('%')">%</button>
+            <button class="calc-btn operator" onclick="appendOperator('/')">÷</button>
+            <button class="calc-btn operator" onclick="appendOperator('*')">×</button>
+
+            <button class="calc-btn" onclick="appendNumber('7')">7</button>
+            <button class="calc-btn" onclick="appendNumber('8')">8</button>
+            <button class="calc-btn" onclick="appendNumber('9')">9</button>
+            <button class="calc-btn operator" onclick="appendOperator('-')">-</button>
+
+            <button class="calc-btn" onclick="appendNumber('4')">4</button>
+            <button class="calc-btn" onclick="appendNumber('5')">5</button>
+            <button class="calc-btn" onclick="appendNumber('6')">6</button>
+            <button class="calc-btn operator" onclick="appendOperator('+')">+</button>
+
+            <button class="calc-btn" onclick="appendNumber('1')">1</button>
+            <button class="calc-btn" onclick="appendNumber('2')">2</button>
+            <button class="calc-btn" onclick="appendNumber('3')">3</button>
+            <button class="calc-btn equals" style="grid-row: span 2; height: 132px;" onclick="triggerCompute()">=</button>
+
+            <button class="calc-btn" style="grid-column: span 2;" onclick="appendNumber('0')">0</button>
+            <button class="calc-btn" onclick="appendNumber('.')">.</button>
+        </div>
+    </div>
+
+    <!-- Script JavaScript -->
+    <script>
+        let currentInput = '0';
+        let previousInput = '';
+        let operation = null;
+
+        const currentDisplay = document.getElementById('current-display');
+        const previousDisplay = document.getElementById('previous-display');
+        const payModal = document.getElementById('payModal');
+
+        function updateDisplay() {
+            currentDisplay.innerText = currentInput;
+            previousDisplay.innerText = previousInput;
+        }
+
+        function appendNumber(number) {
+            if (number === '.' && currentInput.includes('.')) return;
+            if (currentInput === '0' && number !== '.') {
+                currentInput = number;
+            } else {
+                currentInput += number;
+            }
+            updateDisplay();
+        }
+
+        function appendOperator(op) {
+            if (operation !== null) executeComputeSilent();
+            previousInput = currentInput + ' ' + op;
+            operation = op;
+            currentInput = '0';
+            updateDisplay();
+        }
+
+        function executeComputeSilent() {
+            let computation;
+            const prev = parseFloat(previousInput);
+            const current = parseFloat(currentInput);
+            if (isNaN(prev) || isNaN(current)) return;
+
+            switch (operation) {
+                case '+': computation = prev + current; break;
+                case '-': computation = prev - current; break;
+                case '*': computation = prev * current; break;
+                case '/': computation = current === 0 ? 'Error' : prev / current; break;
+                case '%': computation = prev % current; break;
+                default: return;
+            }
+            currentInput = computation.toString();
+            operation = null;
+            previousInput = '';
+        }
+
+        // Ketika tombol "=" diklik, tampilkan modal pop-up pembayaran dulu
+        function triggerCompute() {
+            const prev = parseFloat(previousInput);
+            const current = parseFloat(currentInput);
+            if (isNaN(prev) || isNaN(current)) return;
+
+            // Munculkan pop-up ala video parodi
+            payModal.classList.add('active');
+        }
+
+        function closeModal() {
+            payModal.classList.remove('active');
+        }
+
+        // Jika user klik "Bayar", hitung jawaban asli dan hilangkan modal
+        function confirmPayment() {
+            closeModal();
+
+            let computation;
+            const prev = parseFloat(previousInput);
+            const current = parseFloat(currentInput);
+
+            switch (operation) {
+                case '+':
+                    computation = prev + current;
+                    break;
+                case '-':
+                    computation = prev - current;
+                    break;
+                case '*':
+                    computation = prev * current;
+                    break;
+                case '/':
+                    computation = current === 0 ? 'Error' : prev / current;
+                    break;
+                case '%':
+                    computation = prev % current;
+                    break;
+                default:
+                    return;
+            }
+
+            currentInput = computation.toString();
+            operation = null;
+            previousInput = '';
+            updateDisplay();
+        }
+
+        function clearDisplay() {
+            currentInput = '0';
+            previousInput = '';
+            operation = null;
+            updateDisplay();
+        }
+    </script>
+</body>
+</html>
